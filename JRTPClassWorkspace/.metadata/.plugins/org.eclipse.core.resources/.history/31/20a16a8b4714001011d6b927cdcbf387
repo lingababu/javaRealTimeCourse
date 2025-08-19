@@ -1,0 +1,3 @@
+spring.application.name=loggerApplication
+
+logging.level.root=debug

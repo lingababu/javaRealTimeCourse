@@ -1,0 +1,18 @@
+package com.CounsellorPortal.repo;
+
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.CounsellorPortal.entity.Counsellor;
+
+@Repository
+public interface CounsellorRepo extends JpaRepository<Counsellor, Integer> {
+	
+	Optional<Counsellor> findByEmail(String email);
+	
+	Counsellor findByEmailAndPassword(String email, String password);
+	
+
+}

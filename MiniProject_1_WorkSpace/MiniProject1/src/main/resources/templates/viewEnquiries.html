@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>View Enquires</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet"
+		integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+</head>
+
+<body>
+
+	<div class="container">
+
+		<nav class="navbar navbar-expand-lg bg-body-tertiary">
+			<div class="container-fluid">
+				<a class="navbar-brand" href="dashboard">Dashboard</a>
+				<button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+					data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+					aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="collapse navbar-collapse" id="navbarSupportedContent">
+					<ul class="navbar-nav me-auto mb-2 mb-lg-0">
+						<li class="nav-item">
+							<a class="nav-link active" aria-current="page" href="/viewEnquiryPage">Add Enquiry</a>
+						</li>
+					</ul>
+					<form class="d-flex" role="search" th:action="@{/logout}">
+						<button class="btn btn-outline-danger" type="submit">Logout</button>
+					</form>
+				</div>
+			</div>
+		</nav>
+
+		<h2>View Enquires</h2>
+
+		<form th:action="@{/filterEnqs}" method="post" th:object="${enquiry}">
+
+			<table>
+				<tr>
+					<td>Class Mode: </td>
+					<td>
+						<select th:field="*{classMode}">
+							<option value="">-Select-</option>
+							<option value="online">online</option>
+							<option value="classroom">classroom</option>
+						</select>
+					</td>
+
+					<td>Course: </td>
+					<td>
+						<select th:field="*{courseName}">
+							<option value="">-Select-</option>
+							<option value="core java">core java</option>
+							<option value="SBMS">SBMS</option>
+							<option value="FSJD">FSJD</option>
+							<option value="Devops">Devops</option>
+						</select>
+					</td>
+
+					<td>Status: </td>
+					<td>
+						<select th:field="*{enquiryStatus}">
+							<option value="">-Select-</option>
+							<option value="open">open</option>
+							<option value="enrolled">enrolled</option>
+							<option value="lost">lost</option>
+						</select>
+					</td>
+
+					<td>
+						<input type="submit" class="btn btn-primary" value="Filter" />
+					</td>
+
+				</tr>
+			</table>
+
+		</form>
+
+		<table class="table table-bordered table-striped">
+			<thead>
+
+				<tr>
+					<th>ID</th>
+					<th>Name</th>
+					<th>phno</th>
+					<th>Course Name</th>
+					<th>Class Mode</th>
+					<th>Enq Status</th>
+					<th>Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="enquiry: ${enqdtolist}">
+					<td th:text="${enquiry.enquiryId}"></td>
+					<td th:text="${enquiry.name}"></td>
+					<td th:text="${enquiry.phoneNumber}"></td>
+					<td th:text="${enquiry.classMode}"></td>
+					<td th:text="${enquiry.courseName}"></td>
+					<td th:text="${enquiry.enquiryStatus}"></td>
+					<td>
+						<a th:href="@{/editEnquiry(Id=${enquiry.enquiryId })}">Edit</a>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"
+		integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq"
+		crossorigin="anonymous"></script>
+</body>
+
+</html>

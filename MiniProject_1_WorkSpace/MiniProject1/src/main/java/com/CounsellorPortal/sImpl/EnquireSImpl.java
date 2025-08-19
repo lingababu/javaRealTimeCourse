@@ -1,0 +1,181 @@
+package com.CounsellorPortal.sImpl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
+import org.springframework.stereotype.Service;
+import com.CounsellorPortal.DTO.DashboardDto;
+import com.CounsellorPortal.DTO.EnquiryDto;
+import com.CounsellorPortal.entity.Counsellor;
+import com.CounsellorPortal.entity.Enquiry;
+import com.CounsellorPortal.repo.CounsellorRepo;
+import com.CounsellorPortal.repo.EnquiryRepo;
+import com.CounsellorPortal.sInterfaces.EnquireSI;
+
+@Service
+public class EnquireSImpl implements EnquireSI {
+
+	@Autowired
+	private EnquiryRepo enquiryRepo;
+
+	@Autowired
+	private CounsellorRepo counsellorRepo;
+
+	@Override
+	public boolean saveAndUpdateEnquires(EnquiryDto enquiryDto, Integer counsellorId) {
+
+		Enquiry enquiry = new Enquiry();
+
+		BeanUtils.copyProperties(enquiryDto, enquiry);
+
+		Counsellor counsellor = counsellorRepo.findById(counsellorId).orElseThrow();
+
+		enquiry.setCounsellor(counsellor);
+
+		Enquiry savedEntity = enquiryRepo.save(enquiry);
+
+		return savedEntity.getEnquiryId() != null;
+
+	}
+
+	@Override
+	public List<EnquiryDto> getAllEnquiresBasedOnCounsellorId(Integer counsellorId) {
+
+		List<EnquiryDto> dtoLists = new ArrayList<>();
+
+		Counsellor counsellorEntity = new Counsellor();
+
+		counsellorEntity.setCounsellorId(counsellorId);
+
+		Enquiry enquiryEntity = new Enquiry();
+
+		enquiryEntity.setCounsellor(counsellorEntity);
+
+		List<Enquiry> enqsList = enquiryRepo.findAll(Example.of(enquiryEntity));
+
+		enqsList.forEach(e -> {
+			EnquiryDto dto = new EnquiryDto();
+
+			BeanUtils.copyProperties(e, dto);
+
+			dtoLists.add(dto);
+		});
+
+		return dtoLists;
+	}
+
+	@Override
+	public List<EnquiryDto> getEnquiresBasedOnFilter(EnquiryDto filterEnqDto, Integer cousellorId) {
+
+		Enquiry enquiryEntity = new Enquiry();
+
+		if (filterEnqDto.getEnquiryStatus() != null && !filterEnqDto.getEnquiryStatus().equals("")) {
+
+			enquiryEntity.setEnquiryStatus(filterEnqDto.getEnquiryStatus());
+		}
+
+		if (filterEnqDto.getClassMode() != null && !filterEnqDto.getClassMode().equals("")) {
+
+			enquiryEntity.setClassMode(filterEnqDto.getClassMode());
+		}
+
+		if (filterEnqDto.getCourseName() != null && !filterEnqDto.getCourseName().equals("")) {
+			enquiryEntity.setCourseName(filterEnqDto.getCourseName());
+		}
+
+		Counsellor counsellor = counsellorRepo.findById(cousellorId).orElseThrow();
+
+		enquiryEntity.setCounsellor(counsellor);
+
+		List<Enquiry> enqList = enquiryRepo.findAll(Example.of(enquiryEntity));
+
+		List<EnquiryDto> dtoList = new ArrayList<>();
+
+		enqList.forEach(t -> {
+			EnquiryDto dto = new EnquiryDto();
+
+			BeanUtils.copyProperties(t, dto);
+
+			dtoList.add(dto);
+		});
+
+		return dtoList;
+	}
+
+	@Override
+	public EnquiryDto getEnquiryToEdit(Integer enqId) {
+
+		Enquiry enquiryEntity = enquiryRepo.findById(enqId).orElseThrow();
+
+		EnquiryDto eDto = new EnquiryDto();
+
+		BeanUtils.copyProperties(enquiryEntity, eDto);
+
+		return eDto;
+	}
+
+//	@Override
+//	public DashboardDto getDashboardInfo(Integer counsellorId) {
+//
+//		Counsellor counsellorEntity = new Counsellor();
+//
+//		counsellorEntity.setCounsellorId(counsellorId);
+//
+//		Enquiry enquiry = new Enquiry();
+//
+//		enquiry.setCounsellor(counsellorEntity);
+//
+//		List<Enquiry> enqsList = enquiryRepo.findAll(Example.of(enquiry));
+//
+//		int totalEnquires = enqsList.size();
+//
+//		int openEnquires = enqsList.stream().filter(t -> t.getEnquiryStatus().equals("open"))
+//				.collect(Collectors.toList()).size();
+//
+//		int enrolledEnquires = enqsList.stream().filter(t -> t.getEnquiryStatus().equals("enrolled"))
+//				.collect(Collectors.toList()).size();
+//
+//		int lostEnquires = enqsList.stream().filter(t -> t.getEnquiryStatus().equals("lost"))
+//				.collect(Collectors.toList()).size();
+//
+//		DashboardDto dto = DashboardDto.builder().totalEnquires(totalEnquires).enrolled(enrolledEnquires)
+//				.open(openEnquires).lost(lostEnquires).build();
+//
+//		return dto;
+//	}
+
+	@Override
+	public DashboardDto getDashboardInfo(Integer counsellorId) {
+
+		Counsellor counsellorEntity = new Counsellor();
+
+		counsellorEntity.setCounsellorId(counsellorId);
+
+		Enquiry enquiry = new Enquiry();
+
+		enquiry.setCounsellor(counsellorEntity);
+
+		List<Enquiry> enqsList = enquiryRepo.findAll(Example.of(enquiry));
+
+		int totalEnquires = enqsList.size();
+
+		int openEnquires = enqsList.stream().filter(t -> "open".equals(t.getEnquiryStatus()))
+				.collect(Collectors.toList()).size();
+
+		int enrolledEnquires = enqsList.stream().filter(t -> "enrolled".equals(t.getEnquiryStatus()))
+				.collect(Collectors.toList()).size();
+
+		int lostEnquires = enqsList.stream().filter(t -> "lost".equals(t.getEnquiryStatus()))
+				.collect(Collectors.toList()).size();
+
+		DashboardDto dto = DashboardDto.builder().totalEnquires(totalEnquires).enrolled(enrolledEnquires)
+				.open(openEnquires).lost(lostEnquires).build();
+
+		return dto;
+	}
+
+}

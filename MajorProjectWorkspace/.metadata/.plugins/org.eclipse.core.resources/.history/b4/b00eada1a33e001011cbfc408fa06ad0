@@ -1,0 +1,32 @@
+package com.customer.serviceimpl;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.customer.dto.CustomerDto;
+import com.customer.entity.Customer;
+import com.customer.mapper.CustomerMapper;
+import com.customer.repo.CustomerRepo;
+import com.customer.serviceinterface.CustomerService;
+
+@Service
+public class CustomerServiceImpl implements CustomerService {
+
+	@Autowired
+	private CustomerRepo customerRepo;
+
+	@Override
+	public CustomerDto login(String email, String password) {
+
+		Customer byEmailAndPassword = customerRepo.findByEmailAndPassword(email, password);
+
+		if (byEmailAndPassword == null) {
+			return null;
+		}
+
+		CustomerDto convertToDto = CustomerMapper.convertToDto(byEmailAndPassword);
+
+		return convertToDto;
+	}
+
+}

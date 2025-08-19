@@ -1,0 +1,5 @@
+package com.customer.serviceinterface;
+
+public interface CustomerService {
+
+}

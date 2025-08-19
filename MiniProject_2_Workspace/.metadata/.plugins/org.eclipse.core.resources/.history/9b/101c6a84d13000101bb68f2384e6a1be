@@ -1,0 +1,120 @@
+package com.usermanagement.controller;
+
+import java.util.Map;
+
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.usermanagement.dto.QuoteApiResponseDto;
+import com.usermanagement.dto.RestPasswordDto;
+import com.usermanagement.dto.UserDto;
+import com.usermanagement.entity.User;
+import com.usermanagement.serviceimpl.UserServiceImpl;
+
+@Controller
+public class UserController {
+
+	@Autowired
+	private UserServiceImpl userServiceImpl;
+
+	@GetMapping("/")
+	public String getLoginPage(Model model) {
+
+		UserDto userDto = new UserDto();
+
+		model.addAttribute("User", userDto);
+
+		return "indexPage";
+
+	}
+
+	@PostMapping("/login")
+	public String handleLogin(@ModelAttribute("User") UserDto userDto, Model model) {
+
+		UserDto userLogin = userServiceImpl.userLogin(userDto.getEmail(), userDto.getPassword());
+
+		if (userLogin == null) {
+
+			model.addAttribute("emsg", "Invalid credentials");
+
+			return "indexPage";
+		}
+
+		String passwordUpdated = userLogin.getPasswordUpdated();
+
+		if (passwordUpdated.equals("No")) {
+			
+			RestPasswordDto restPasswordDto = new RestPasswordDto();
+			
+			model.addAttribute("ResetPassword", restPasswordDto);
+
+			return "restPasswordViewPage";
+
+		} else {
+
+			QuoteApiResponseDto buidDashboard = userServiceImpl.buidDashboard();
+
+			model.addAttribute("Dashboard", buidDashboard);
+
+			return "dashboardPage";
+		}
+	}
+
+	@GetMapping("/registerPage")
+	public String registerPage(Model model) {
+
+		UserDto userDto = new UserDto();
+
+		model.addAttribute("User", userDto);
+
+		Map<Integer, String> countries = userServiceImpl.getCountries();
+
+		model.addAttribute("Countries", countries);
+
+		return "registerPage";
+
+	}
+
+	@GetMapping("/states")
+	@ResponseBody
+	public Map<Integer, String> getStates(@RequestParam("countryId") Integer countryId) {
+
+		return userServiceImpl.getStates(countryId);
+
+	}
+
+	@GetMapping("/cities")
+	@ResponseBody
+	public Map<Integer, String> getCities(@RequestParam("stateId") Integer stateId) {
+
+		return userServiceImpl.getCities(stateId);
+	}
+
+	@PostMapping("/register")
+	public String handleRegistration(UserDto userDto, Model model) {
+
+		boolean emailUnique = userServiceImpl.isEmailUnique(userDto.getEmail());
+
+		if (!emailUnique) {
+
+			model.addAttribute("emsg", "Duplicate email found.");
+
+			return "registerPage";
+		}
+
+		User user = new User();
+
+		BeanUtils.copyProperties(userDto, user);
+
+		return "registerPage";
+
+	}
+
+}

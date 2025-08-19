@@ -1,0 +1,40 @@
+package com.product.serviceimpl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.product.dto.CategoryDto;
+import com.product.entity.Categories;
+import com.product.repo.CategoryRepo;
+import com.product.serviceinterface.CategoryServiceInterface;
+
+@Service
+public class CategoryServiceImpl implements CategoryServiceInterface {
+
+	@Autowired
+	private CategoryRepo categoryRepo;
+
+	@Override
+	public boolean saveCategory(Categories categories) {
+
+		Categories savedData = categoryRepo.save(categories);
+
+		return savedData.getCategoryId() != null;
+	}
+
+	@Override
+	public List<CategoryDto> getAllCategory() {
+
+		List<String> retriveCategoryName = categoryRepo.retriveCategoryName();
+
+		if (retriveCategoryName.isEmpty()) {
+
+			return null;
+		}
+
+		return retriveCategoryName;
+	}
+
+}

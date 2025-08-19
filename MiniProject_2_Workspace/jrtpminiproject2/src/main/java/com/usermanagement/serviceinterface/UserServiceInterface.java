@@ -1,0 +1,29 @@
+package com.usermanagement.serviceinterface;
+
+import java.util.Map;
+
+import com.usermanagement.dto.QuoteApiResponseDto;
+import com.usermanagement.dto.RestPasswordDto;
+import com.usermanagement.dto.UserDto;
+import com.usermanagement.entity.User;
+
+public interface UserServiceInterface {
+	
+	public Map<Integer,String> getCountries();
+	
+	public Map<Integer,String> getStates(Integer countryId);
+	
+	public Map<Integer,String> getCities(Integer stateId);
+	
+	public boolean isEmailUnique(String email);
+
+	public boolean userRegister(UserDto userDto);
+
+	public UserDto userLogin(String email, String password);
+	
+	public boolean restPassword(RestPasswordDto restPasswordDto);
+	
+	public QuoteApiResponseDto buidDashboard();
+	
+	public UserDto getEmail(String email);
+}

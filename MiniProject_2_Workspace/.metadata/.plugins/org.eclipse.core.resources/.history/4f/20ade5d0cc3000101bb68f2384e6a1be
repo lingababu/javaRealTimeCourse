@@ -1,0 +1,216 @@
+package com.usermanagement.serviceimpl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Random;
+
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import com.usermanagement.dto.QuoteApiResponseDto;
+import com.usermanagement.dto.RestPasswordDto;
+import com.usermanagement.dto.UserDto;
+import com.usermanagement.entity.City;
+import com.usermanagement.entity.Country;
+import com.usermanagement.entity.State;
+import com.usermanagement.entity.User;
+import com.usermanagement.repository.CityRepo;
+import com.usermanagement.repository.CountryRepo;
+import com.usermanagement.repository.StateRepo;
+import com.usermanagement.repository.UserRepo;
+import com.usermanagement.serviceinterface.UserServiceInterface;
+
+@Service
+public class UserServiceImpl implements UserServiceInterface {
+	@Autowired
+	private CountryRepo countryRepo;
+
+	@Autowired
+	private StateRepo stateRepo;
+
+	@Autowired
+	private CityRepo cityRepo;
+
+	@Autowired
+	private UserRepo userRepo;
+	
+	@Autowired
+	private EmailServiceImpl emailServiceImpl;
+
+	@Override
+	public Map<Integer, String> getCountries() {
+
+		Map<Integer, String> countriesMapList = new HashMap<>();
+
+		List<Country> countrieslist = countryRepo.findAll();
+
+		countrieslist.forEach(t -> {
+			countriesMapList.put(t.getCountryId(), t.getCountryName());
+		});
+
+		return countriesMapList;
+
+	}
+
+	@Override
+	public Map<Integer, String> getStates(Integer countryId) {
+
+		Map<Integer, String> statesMapLists = new HashMap<>();
+
+		List<State> statesList = stateRepo.findByCountryCountryId(countryId);
+
+		statesList.forEach(s -> {
+			statesMapLists.put(s.getStateId(), s.getStateName());
+		});
+
+		return statesMapLists;
+	}
+
+	@Override
+	public Map<Integer, String> getCities(Integer stateId) {
+
+		Map<Integer, String> citiesMapList = new HashMap<>();
+
+		List<City> citiesList = cityRepo.findByStateStateId(stateId);
+
+		citiesList.forEach(c -> {
+			citiesMapList.put(c.getCityId(), c.getCityName());
+		});
+
+		return citiesMapList;
+	}
+
+	@Override
+	public boolean isEmailUnique(String email) {
+
+		User checkEmail = userRepo.findByEmail(email);
+
+		 if(checkEmail != null) {
+			 
+			 return true;
+		 }
+		return false;
+	}
+
+	@Override
+	public boolean userRegister(UserDto userDto) {
+
+		User user = new User();
+
+		BeanUtils.copyProperties(userDto, user);
+
+		Optional<Country> countryOptional = countryRepo.findById(userDto.getCountryId());
+
+		Optional<State> stateOptional = stateRepo.findById(userDto.getStateId());
+
+		Optional<City> cityOptional = cityRepo.findById(userDto.getCityId());
+
+		user.setCountry(countryOptional.get());
+
+		user.setState(stateOptional.get());
+
+		user.setCity(cityOptional.get());
+
+		String pwd = generatePassword();
+
+		user.setPassword(pwd);
+
+		user.setPasswordUpdated("No");
+
+		User savedData = userRepo.save(user);
+
+		Integer user_id = savedData.getUser_id();
+
+		if (user_id != null) {
+			
+			String sub ="Registration Success";
+			
+			String message ="Your temporary password: "+ pwd;
+			
+			emailServiceImpl.sendEmail(userDto.getEmail(), sub, message);
+
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public UserDto userLogin(String email, String password) {
+
+		User entry = userRepo.findByEmailAndPassword(email, password);
+
+		if (entry != null) {
+
+			UserDto userDto = new UserDto();
+
+			BeanUtils.copyProperties(entry, userDto);
+
+			return userDto;
+		}
+
+		return null;
+	}
+
+	@Override
+	public boolean restPassword(RestPasswordDto restPasswordDto) {
+
+		User userEntity = userRepo.findByEmail(restPasswordDto.getEmail());
+
+		if (userEntity != null) {
+
+			userEntity.setPassword(restPasswordDto.getNewPassword());
+
+			userEntity.setPasswordUpdated("Yes");
+
+			userRepo.save(userEntity);
+
+			return true;
+
+		}
+
+		return false;
+	}
+
+	@Override
+	public QuoteApiResponseDto buidDashboard() {
+
+		String url = "https://dummyjson.com/quotes/random";
+
+		RestTemplate rt = new RestTemplate();
+
+		ResponseEntity<QuoteApiResponseDto> forEntity = rt.getForEntity(url, QuoteApiResponseDto.class);
+
+		QuoteApiResponseDto body = forEntity.getBody();
+
+		return body;
+	}
+
+	private String generatePassword() {
+
+		StringBuffer b = new StringBuffer();
+
+		String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+		int pwdlength = 5;
+
+		Random r = new Random();
+
+		for (int i = 0; i < pwdlength; i++) {
+
+			int index = r.nextInt(chars.length());
+
+			char charAt = chars.charAt(index);
+
+			b.append(charAt);
+		}
+
+		return b.toString();
+	}
+
+}

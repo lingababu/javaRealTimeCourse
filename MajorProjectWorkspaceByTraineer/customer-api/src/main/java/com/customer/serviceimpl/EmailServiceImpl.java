@@ -1,0 +1,45 @@
+package com.customer.serviceimpl;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.stereotype.Service;
+
+import com.customer.serviceinterface.EmailService;
+
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+
+@Service
+public class EmailServiceImpl implements EmailService {
+
+	@Autowired
+	private JavaMailSender javaMailSender;
+
+	@Override
+	public boolean sendEmail(String to, String sub, String body) {
+
+		MimeMessage mailMessage = javaMailSender.createMimeMessage();
+
+		MimeMessageHelper helper = new MimeMessageHelper(mailMessage);
+
+		try {
+			helper.setTo(to);
+
+			helper.setSubject(sub);
+
+			helper.setText(body);
+
+			javaMailSender.send(mailMessage);
+
+			return true;
+
+		} catch (MessagingException e) {
+
+			e.printStackTrace();
+		}
+
+		return false;
+	}
+
+}

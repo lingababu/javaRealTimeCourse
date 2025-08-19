@@ -1,0 +1,42 @@
+package com.customer.restcontroller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.customer.apiresponse.ApiResponse;
+import com.customer.dto.CustomerDto;
+import com.customer.serviceinterface.CustomerService;
+
+@RestController
+public class CustomerRestController {
+
+	@Autowired
+	private CustomerService customerService;
+
+	@PostMapping(value = "/login/{email}/{password}")
+	public ResponseEntity<ApiResponse<CustomerDto>> login(@PathVariable String email, @PathVariable String password) {
+
+		ApiResponse<CustomerDto> response = new ApiResponse<>();
+
+		CustomerDto login = customerService.login(email, password);
+
+		if (login == null) {
+
+			response.setStatus(204);
+			response.setMessage("Login failed");
+			response.setData(null);
+			return new ResponseEntity<ApiResponse<CustomerDto>>(HttpStatus.NO_CONTENT);
+		} else {
+
+			response.setData(login);
+			response.setMessage("Login Successfull.");
+			response.setStatus(200);
+			return new ResponseEntity<ApiResponse<CustomerDto>>(response, HttpStatus.OK);
+		}
+	}
+
+}

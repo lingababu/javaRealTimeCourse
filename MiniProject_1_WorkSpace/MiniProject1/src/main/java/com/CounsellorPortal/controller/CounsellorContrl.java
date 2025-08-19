@@ -1,0 +1,115 @@
+package com.CounsellorPortal.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import com.CounsellorPortal.DTO.CounsellorDto;
+import com.CounsellorPortal.DTO.DashboardDto;
+import com.CounsellorPortal.sImpl.CounsellorSImpl;
+import com.CounsellorPortal.sImpl.EnquireSImpl;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+
+@Controller
+public class CounsellorContrl {
+
+	@Autowired
+	private CounsellorSImpl counsellorSImpl;
+
+	@Autowired
+	private EnquireSImpl enquireSImpl;
+
+	@GetMapping("/")
+	public String indexFormDisplay(Model model) {
+
+		CounsellorDto counsellor = new CounsellorDto();
+
+		model.addAttribute("Counsellor", counsellor);
+
+		return "index";
+	}
+
+	@PostMapping("/login")
+	public String handleLogin(CounsellorDto counsellorDto, Model model, HttpServletRequest request) {
+
+		CounsellorDto dto = counsellorSImpl.counsellorLogin(counsellorDto.getEmail(), counsellorDto.getPassword());
+
+		if (dto == null) {
+
+			model.addAttribute("ermsg", "Invalid credentials");
+
+			CounsellorDto counsellor = new CounsellorDto();
+
+			model.addAttribute("Counsellor", counsellor);
+
+			return "index";
+		}
+
+		HttpSession session = request.getSession(true);
+
+		session.setAttribute("CounsellorId", dto.getCounsellorId());
+
+		return "redirect:dashboard";
+	}
+
+	@GetMapping("/dashboard")
+	public String buildDashboard(HttpServletRequest request, Model model) {
+
+		HttpSession session = request.getSession(false);
+
+		Integer cid = (Integer) session.getAttribute("CounsellorId");
+
+		DashboardDto dashboardDto = enquireSImpl.getDashboardInfo(cid);
+
+		model.addAttribute("dashboardInfo", dashboardDto);
+
+		return "dashboardReportView";
+	}
+
+	@GetMapping("/register")
+	public String registerFormDisplay(Model model) {
+
+		CounsellorDto counsellorDto = new CounsellorDto();
+
+		model.addAttribute("Counsellor", counsellorDto);
+
+		return "registerView";
+	}
+
+	@PostMapping("/register")
+	public String register(@ModelAttribute("Counsellor") CounsellorDto counsellorDto, Model model) {
+
+		boolean status = counsellorSImpl.isEmailUnique(counsellorDto.getEmail());
+
+		if (status) {
+
+			boolean register = counsellorSImpl.counsellorRegister(counsellorDto);
+
+			if (register) {
+				model.addAttribute("smsg", "Registration success.");
+			} else {
+				model.addAttribute("ermsg", "Registration failed.");
+			}
+
+		} else {
+
+			model.addAttribute("ermsg", "Duplicate email found.");
+		}
+		return "registerView";
+	}
+	
+	@GetMapping("/logout")
+	public String logout(HttpServletRequest request) {
+
+		HttpSession session = request.getSession(false);
+		
+		session.invalidate();
+
+		return "redirect:/";
+
+	}
+}

@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: customer-api
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/e_commdb
+    username: root
+    password: root
+  jpa:
+    show-sql: true
+    properties:
+       format_sql: true
+    hibernate:
+      ddl-auto: update
+server:
+  port: 8081
